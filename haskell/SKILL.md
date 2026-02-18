@@ -1,6 +1,6 @@
 ---
 name: haskell
-description: Expert Haskell development skill. Covers type-driven design, GHC extensions, Cabal/Stack/Nix builds, performance optimization, testing, and the modern Haskell library ecosystem. Activate for any Haskell programming, debugging, or architecture tasks.
+description: Expert Haskell development skill. Covers type-driven design, GHC extensions, Cabal/Nix builds, performance optimization, testing, and the modern Haskell library ecosystem. Activate for any Haskell programming, debugging, or architecture tasks.
 ---
 
 # Haskell Development Guide
@@ -12,7 +12,7 @@ description: Expert Haskell development skill. Covers type-driven design, GHC ex
 3. **Composition over inheritance** — Small, composable functions. Typeclasses for ad-hoc polymorphism.
 4. **Laziness as a tool** — Enables elegant abstractions but demands awareness of space leaks.
 5. **Correctness first, then performance** — Get it right, then profile, then optimize.
-5. **Keep it Simple** — Purity and strong types (i.e. roughly Haskell2010) gives you the majority of Haskell's value.  Avoid more advanced language features unless absolutely necessary.
+6. **Keep it Simple** — Purity and strong types (i.e. roughly Haskell2010) gives you the majority of Haskell's value.  Avoid more advanced language features unless absolutely necessary.
 
 ## Project Setup
 
@@ -56,7 +56,7 @@ executable my-project
     import:           warnings
     main-is:          Main.hs
     build-depends:    base, my-project
-    hs-source-dirs:   app
+    hs-source-dirs:   exe
     default-language: Haskell2010
 
 test-suite tests
@@ -124,7 +124,7 @@ GeneralizedNewtypeDeriving  -- Derive through newtypes
 MultiParamTypeClasses       -- Typeclasses with multiple params
 NumericUnderscores          -- More readable number syntax
 OverloadedRecordDot         -- record.field syntax (GHC 9.2+)
-OverloadedStrings           -- String literals as Text/ByteString
+OverloadedStrings           -- String literals as Text/ByteString (some projects always-enable this)
 RankNTypes                  -- Higher-rank polymorphism (forall inside arrows)
 RecordWildCards             -- Controversial but can be used effectively
 ```

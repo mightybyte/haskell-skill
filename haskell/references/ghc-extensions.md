@@ -39,18 +39,17 @@ data User = User Text Int
 ```haskell
 {-# LANGUAGE LambdaCase #-}
 
--- Concise pattern matching in lambda
-parseResult :: Text -> Either Error Value
-parseResult input = case parse input of
-  \case  -- No need to name the parameter
-    Left err -> Left (ParseError err)
-    Right val -> Right val
-
 -- Useful with higher-order functions
 processResults :: [Either Error Value] -> [Value]
 processResults = mapMaybe $ \case
   Left _ -> Nothing
   Right val -> Just val
+
+-- Replaces \x -> case x of ...
+handleResult :: Either Error Value -> IO ()
+handleResult = \case
+  Left err -> logError err
+  Right val -> processValue val
 ```
 
 ### MultiWayIf  
