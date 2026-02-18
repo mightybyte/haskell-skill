@@ -384,6 +384,7 @@ modify' (\s -> s { count = count s + 1 })
 10. **Show for serialization** — `Show` is for debugging. Use `aeson` for JSON, `binary`/`cereal` for binary serialization.
 11. **MonadFail** — Pattern match failures in `do` blocks require `MonadFail`. Avoid partial patterns in `do`.
 12. **Template Haskell ordering** — TH splices create declaration groups. All TH splices must come after the declarations they reference and before declarations that reference the generated code.
+13. **Using newer dependencies** - When there is a version mismatch, try upgrading to a newer version first. With cabal or nix flakes, you can put an allow-newer in the `cabal.project` file.
 
 ## Key Libraries
 
