@@ -4,6 +4,7 @@
 
 ### Keep Modules Focused
 - One concern per module. If a module grows past ~300 lines, split it.
+- Most imports should import the full module and not explicit symbols.
 - Types go in their own module to break import cycles.
 - `Internal/` modules are implementation details — no stability guarantees.
 
@@ -258,7 +259,7 @@ parseAndValidate :: RawJson -> Either AppError (Validated Order)
 -- app/Main.hs
 module Main (main) where
 
-import MyProject (runApp, defaultConfig)
+import MyProject
 
 main :: IO ()
 main = do
