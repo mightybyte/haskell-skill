@@ -299,28 +299,7 @@ sendEmail :: EmailAddress -> Subject -> Body -> IO ()
 -- Can't accidentally pass UserId where EmailAddress expected
 ```
 
-### Phantom Types for State
-```haskell
-data ValidationState = Validated | Unvalidated
-
-newtype Form (s :: ValidationState) = Form (Map Text Text)
-  deriving newtype (Show, Eq)
-
-type ValidatedForm = Form 'Validated
-type UnvalidatedForm = Form 'Unvalidated
-
-validate :: UnvalidatedForm -> Either [ValidationError] ValidatedForm
-validate (Form fields) = do
-  validateRequired fields
-  validateFormats fields  
-  pure (Form fields)
-
--- Only validated forms can be processed  
-processForm :: ValidatedForm -> IO ()
-processForm (Form fields) = do
-  -- Process with confidence that validation occurred
-  pure ()
-```
+For phantom types used with newtypes (e.g., `Form 'Validated`), see `type-system.md`.
 
 ## Type-Level Programming Patterns
 

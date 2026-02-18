@@ -201,88 +201,46 @@ goodMonadicSum = foldM (\acc action -> do
 
 ## High-Performance Data Structures
 
-### Vector for Arrays
+For basic API usage of Vector, ByteString, and Text, see `libraries.md`.
+
+### Choosing the Right Vector Type
 ```haskell
-import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as U
-import qualified Data.Vector.Storable as S
+-- V.Vector:  Boxed — for complex types (User, etc.)
+-- U.Vector:  Unboxed — for primitives (Int, Double) — faster, less memory
+-- S.Vector:  Storable — for C interop via FFI
+
+-- In-place mutation for performance-critical code
 import qualified Data.Vector.Mutable as MV
+import qualified Data.Vector.Unboxed as U
 
--- Choose the right vector type
--- V.Vector: Boxed vectors for complex types  
--- U.Vector: Unboxed vectors for primitives (faster)
--- S.Vector: Storable vectors for C interop
-
--- Efficient array processing
-processNumbers :: U.Vector Double -> Double
-processNumbers numbers = 
-  U.sum $ U.map (\x -> x * x + 1) $ U.filter (> 0) numbers
-
--- In-place mutation for performance
 createLookupTable :: Int -> IO (U.Vector Int)
 createLookupTable size = do
   mv <- MV.new size
-  forM_ [0..size-1] $ \i -> 
+  forM_ [0..size-1] $ \i ->
     MV.write mv i (expensiveFunction i)
   U.freeze mv
-
--- Parallel vector operations
-import qualified Data.Vector.Parallel as PV
-
-parallelProcessing :: U.Vector Double -> U.Vector Double
-parallelProcessing = PV.map expensiveFunction
 ```
 
-### ByteString for Binary Data
+### Builder Pattern for Text and ByteString
 ```haskell
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.ByteString.Builder as B
-
--- Efficient string building
-buildLargeByteString :: [ByteString] -> LBS.ByteString
-buildLargeByteString chunks = B.toLazyByteString $
-  foldMap B.byteString chunks
-
--- Avoid intermediate allocations
-processLargeFile :: FilePath -> FilePath -> IO ()
-processLargeFile input output = 
-  BS.readFile input >>= BS.writeFile output . processData
-  where
-    processData = BS.map toUpper . BS.filter (/= 32)  -- Remove spaces, uppercase
-
--- Lazy ByteString for streaming
-streamProcess :: FilePath -> IO Int64
-streamProcess file = do
-  content <- LBS.readFile file
-  return $ LBS.length $ LBS.filter (/= 10) content  -- Count non-newlines
-```
-
-### Text Performance
-```haskell
-import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import qualified Data.Text.IO as T
+import qualified Data.ByteString.Builder as B
 
--- Efficient text building
-buildText :: [Text] -> Text  
+-- Use Builders for efficient incremental construction (avoids O(n²) concat)
+buildText :: [Text] -> Text
 buildText pieces = TL.toStrict $ TB.toLazyText $
   foldMap TB.fromText pieces
 
--- Streaming text processing
-processTextFile :: FilePath -> IO Text
-processTextFile file = do
-  content <- T.readFile file  
-  return $ T.unlines $ 
-           filter (not . T.null) $ 
-           map T.strip $ 
-           T.lines content
-
--- Text vs String performance
--- String: Linked list of Char - O(n) for length, indexing
--- Text: UTF-16 encoded array - O(1) for length, fast operations
+buildLargeByteString :: [ByteString] -> LBS.ByteString
+buildLargeByteString chunks = B.toLazyByteString $
+  foldMap B.byteString chunks
 ```
+
+### Performance Rules of Thumb
+- **Text vs String**: Text is a UTF-16 array (O(1) length); String is `[Char]` (O(n) everything). Always use Text.
+- **Strict vs Lazy ByteString/Text**: Use strict for bounded-size data, lazy for streaming or large files.
+- **Vector vs List**: Use Vector when you need indexing or bulk numeric computation.
 
 ## Fusion and Stream Processing
 
@@ -330,27 +288,7 @@ slidingWindow size = do
 
 ## Concurrent Performance
 
-### STM for Shared State
-```haskell
-import Control.Concurrent.STM
-
--- Lock-free shared counter
-data SharedCounter = SharedCounter (TVar Int)
-
-newSharedCounter :: IO SharedCounter  
-newSharedCounter = SharedCounter <$> newTVarIO 0
-
-incrementCounter :: SharedCounter -> STM ()
-incrementCounter (SharedCounter var) = modifyTVar' var (+1)
-
--- Composable transactions
-transfer :: TVar Int -> TVar Int -> Int -> STM ()
-transfer from to amount = do
-  fromBalance <- readTVar from
-  when (fromBalance < amount) retry  -- Block until sufficient funds
-  modifyTVar from (subtract amount)
-  modifyTVar to (+ amount)
-```
+For STM and Async patterns, see `common-patterns.md`.
 
 ### Parallel Strategies
 ```haskell
@@ -382,31 +320,6 @@ mergeSort xs
     (leftHalf, rightHalf) = splitAt (length xs `div` 2) xs
     left' = mergeSort leftHalf  
     right' = mergeSort rightHalf
-```
-
-### Async for Concurrency
-```haskell
-import Control.Concurrent.Async
-
--- Concurrent HTTP requests
-fetchUrls :: [URL] -> IO [Response]
-fetchUrls urls = mapConcurrently fetch urls
-
--- Timeout and cancellation
-fetchWithTimeout :: Int -> URL -> IO (Maybe Response)
-fetchWithTimeout seconds url = do
-  result <- race (threadDelay (seconds * 1000000)) (fetch url)
-  case result of
-    Left _ -> return Nothing   -- Timeout
-    Right response -> return (Just response)
-
--- Resource pooling  
-withResourcePool :: Int -> (Resource -> IO a) -> [Input] -> IO [a]
-withResourcePool poolSize action inputs = do  
-  semaphore <- newQSem poolSize
-  mapConcurrently (\input -> 
-    bracket_ (waitQSem semaphore) (signalQSem semaphore) 
-             (action input)) inputs
 ```
 
 ## Benchmarking with Criterion

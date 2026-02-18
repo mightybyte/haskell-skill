@@ -234,56 +234,9 @@ userDocs = docs (Proxy @UserAPI)
 
 ## Concurrency
 
-### STM - Software Transactional Memory
-```haskell
-import Control.Concurrent.STM
+See `common-patterns.md` for STM, Async, and concurrency patterns.
 
-data Counter = Counter { value :: TVar Int }
-
-newCounter :: IO Counter
-newCounter = Counter <$> newTVarIO 0
-
-increment :: Counter -> STM ()
-increment counter = modifyTVar' (value counter) (+1)
-
--- Composable transactions
-transfer :: TVar Int -> TVar Int -> Int -> STM ()
-transfer fromAccount toAccount amount = do
-  fromBalance <- readTVar fromAccount
-  when (fromBalance < amount) retry  -- Block until sufficient funds
-  modifyTVar fromAccount (subtract amount)
-  modifyTVar toAccount (+ amount)
-
--- Atomic execution
-atomicTransfer :: TVar Int -> TVar Int -> Int -> IO ()
-atomicTransfer from to amount = atomically $ transfer from to amount
-```
-
-### Async - Concurrent Programming
-```haskell
-import Control.Concurrent.Async
-
--- Parallel processing
-processParallel :: [FilePath] -> IO [ProcessResult]
-processParallel files = do
-  asyncs <- mapM (async . processFile) files
-  mapM wait asyncs
-
--- Race conditions
-fetchWithTimeout :: Int -> IO a -> IO (Maybe a)
-fetchWithTimeout timeoutSecs action = do
-  result <- race (threadDelay (timeoutSecs * 1000000)) action
-  case result of
-    Left _ -> pure Nothing    -- Timeout
-    Right value -> pure (Just value)
-
--- Concurrent resource pooling
-withResourcePool :: Int -> (Resource -> IO a) -> [Input] -> IO [a]
-withResourcePool poolSize action inputs = do
-  sem <- newQSem poolSize  -- Limit concurrent operations
-  mapConcurrently (\input -> bracket_ (waitQSem sem) (signalQSem sem) 
-                                      (action input)) inputs
-```
+Key packages: `stm`, `async`.
 
 ## Database
 
