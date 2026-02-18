@@ -68,6 +68,12 @@ test-suite tests
     default-language: Haskell2010
 ```
 
+Package version bounds go in the cabal file.  Libraries uploaded to hackage
+should have both lower and upper bounds reflecting verified builds-successfully
+status. Package versions should conform to the Haskell Package Versioning
+Policy (PVP, https://pvp.haskell.org/).  Packaging providing an executable
+and no package for upload to hackage don't need to specify version bounds.
+
 ## Project Structure
 
 ```
@@ -367,7 +373,8 @@ modify' (\s -> s { count = count s + 1 })
 | File watch | `ghcid --command="cabal repl"` |
 | Deps outdated | `cabal outdated` |
 | Clean | `cabal clean` |
-| Nix build | `nix build` |
+| Nix full package build | `nix build` |
+| Nix faster incremental build | `nix develop --command cabal build` |
 | Nix dev shell | `nix develop` |
 
 ## Common Gotchas
@@ -385,6 +392,13 @@ modify' (\s -> s { count = count s + 1 })
 11. **MonadFail** — Pattern match failures in `do` blocks require `MonadFail`. Avoid partial patterns in `do`.
 12. **Template Haskell ordering** — TH splices create declaration groups. All TH splices must come after the declarations they reference and before declarations that reference the generated code.
 13. **Using newer dependencies** - When there is a version mismatch, try upgrading to a newer version first. With cabal or nix flakes, you can put an allow-newer in the `cabal.project` file.
+
+## Hackage Package Repository
+
+The definitive source of published Haskell packages. Contains docs, dependencies, version bounds, etc.
+
+- **Link to most recent version of a package** - https://hackage.haskell.org/package/<PACKAGE> i.e. (https://hackage.haskell.org/package/lens)
+- **Link to specific package version** - https://hackage.haskell.org/package/<PACKAGE>-<VERSION> i.e. (https://hackage.haskell.org/package/lens-5.3.4)
 
 ## Key Libraries
 
