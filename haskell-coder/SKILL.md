@@ -1,5 +1,5 @@
 ---
-name: haskell
+name: haskell-coder
 description: Expert Haskell development skill. Covers type-driven design, GHC extensions, Cabal/Nix builds, performance optimization, testing, and the modern Haskell library ecosystem. Activate for any Haskell programming, debugging, or architecture tasks.
 ---
 
@@ -232,30 +232,58 @@ catch   :: Exception e => IO a -> (e -> IO a) -> IO a
 
 ## Common Patterns
 
-### The ReaderT Pattern
+### The ReaderT Env Pattern
+
+The preferred application monad is `ReaderT Env IO`. It solves a fundamental problem: most application functions need access to shared context — a database pool, a logger, configuration — and threading these as explicit arguments everywhere is noisy and brittle. The environment gathers all of these common resources into one place so they're available uniformly throughout the application.
+
+Think of it as two architectural layers working together:
+
+- **Uniformity layer (the `AppEnv` record):** The top-level environment collects all the resources and configuration an application commonly needs into a single, concrete type. Rather than passing five separate arguments or defining a bespoke record for every combination, you have one environment that travels everywhere through `ReaderT`. It's the answer to "where do I put things the app needs?"
+
+- **Least-context layer (the `Has` constraints):** Individual functions don't take the full environment — they constrain on only what they actually use. A function that only needs a database pool says so in its type. This keeps functions honest about their dependencies, makes them easier to test in isolation, and means the full `AppEnv` is an implementation detail that most of the codebase doesn't couple to.
+
+There are many possible subsets of the environment that different functions might need. You could try to model every subset as its own type, but that's impractical. The `ReaderT Env` + `Has` combination strikes a good balance: one concrete environment for uniformity at the top, granular constraints for least-context at the bottom.
+
+#### Structure
+
 ```haskell
+-- The environment holds resources and config, not mutable business state.
 data AppEnv = AppEnv
   { appDbPool   :: !Pool Connection
   , appLogger   :: !Logger
   , appConfig   :: !Config
   }
 
+-- Newtype over ReaderT Env IO. Avoid deeper transformer stacks —
+-- use IORef/TVar in the env for mutable state, exceptions for errors.
 newtype App a = App (ReaderT AppEnv IO a)
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadReader AppEnv)
 
+-- Unwrap once at the top level.
 runApp :: AppEnv -> App a -> IO a
 runApp env (App m) = runReaderT m env
+```
 
--- Use Has-pattern for granular access:
+#### Has-pattern for granular access
+
+```haskell
 class Has field env where
   obtain :: env -> field
 
 instance Has (Pool Connection) AppEnv where
   obtain = appDbPool
 
+-- Declares exactly what it needs — not coupled to AppEnv.
 grabPool :: (MonadReader env m, Has (Pool Connection) env) => m (Pool Connection)
 grabPool = asks obtain
 ```
+
+#### What to avoid
+
+- **Deep transformer stacks** — `ExceptT AppError (StateT AppState (ReaderT AppEnv IO))` adds complexity and overhead. `ReaderT Env IO` is almost always sufficient.
+- **`StateT` in the stack** — use an `IORef`/`TVar` in the environment instead.
+- **`ExceptT` in the stack** — throw exceptions in `IO`, catch at boundaries.
+- **Mutable business state in the env** — the env holds resources (pools, loggers, config), not application data like `IORef [User]`.
 
 ### Optics (lens/optics)
 ```haskell
