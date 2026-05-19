@@ -96,10 +96,9 @@ These skills follow the open [Agent Skills specification](https://agentskills.io
 
 1. **Types are the design** -- Make illegal states unrepresentable
 2. **Purity by default** -- Side effects are explicit in the type system
-3. **Composition over inheritance** -- Small, composable functions and typeclasses
-4. **Laziness as a tool** -- Elegant abstractions with awareness of space leaks
-5. **Correctness first, then performance** -- Get it right, profile, then optimize
-6. **Keep it simple** -- Haskell2010 + purity + strong types deliver the majority of the value
+3. **Laziness as a tool** -- Elegant abstractions with awareness of space leaks
+4. **Correctness first, then performance** -- Get it right, profile, then optimize
+5. **Keep it simple** -- Haskell2010 + purity + strong types deliver the majority of the value
 
 ## Design Principles
 

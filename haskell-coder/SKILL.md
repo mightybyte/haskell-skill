@@ -9,10 +9,9 @@ description: Expert Haskell development skill. Covers type-driven design, GHC ex
 
 1. **Types are the design** — Make illegal states unrepresentable. If the type checker accepts it, we would like it to be correct.
 2. **Purity by default** — Side effects are explicit in the type system. `IO` is a feature, not a burden.
-3. **Composition over inheritance** — Small, composable functions. Typeclasses for ad-hoc polymorphism.
-4. **Laziness as a tool** — Enables elegant abstractions but demands awareness of space leaks.
-5. **Correctness first, then performance** — Get it right, then profile, then optimize.
-6. **Keep it Simple** — Purity and strong types (i.e. roughly Haskell2010) gives you the majority of Haskell's value.  Avoid more advanced language features unless absolutely necessary.
+3. **Laziness as a tool** — Enables elegant abstractions but demands awareness of space leaks.
+4. **Correctness first, then performance** — Get it right, then profile, then optimize.
+5. **Keep it Simple** — Purity and strong types (i.e. roughly Haskell2010) gives you the majority of Haskell's value.  Avoid more advanced language features unless absolutely necessary.
 
 ## Project Setup
 
