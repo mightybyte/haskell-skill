@@ -4,7 +4,7 @@
 
 ### Keep Modules Focused
 - One concern per module. If a module grows past ~300 lines, split it.
-- Most imports should import the full module and not explicit symbols.
+- **Import whole modules, not individual symbols** (e.g. `import Control.Monad.Reader`, not `import Control.Monad.Reader (asks, runReaderT)`). This keeps diffs small when symbols are added/removed/renamed, avoids the import list rotting out of sync with usage, and saves an edit round-trip on every call-site change. Use explicit import lists only when there's a concrete reason — name clashes, `qualified` aliases, or a Prelude replacement under `NoImplicitPrelude`.
 - Types go in their own module to break import cycles.
 - `Internal/` modules are implementation details — no stability guarantees.
 
