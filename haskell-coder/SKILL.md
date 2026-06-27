@@ -125,7 +125,7 @@ Caveats / when explicit imports are still appropriate:
 
 - **Name clashes.** If two modules export the same name and you need both, qualify one (`import qualified Data.Map as M`) or import the other explicitly to surface what's being shadowed.
 - **`qualified` imports.** Always use `qualified` with an alias for modules you intend to use prefixed (`import qualified Data.Text as T`).
-- **Prelude replacements.** A `NoImplicitPrelude` module should explicitly list what it re-exports from its chosen prelude.
+- **Prelude replacements.** A `NoImplicitPrelude` module should explicitly list what it re-exports from its chosen prelude.  Alternative Preludes are strongly discouraged.  They can significantly change coding patterns from what LLMs expect.
 - **Large, overlapping namespaces.** For modules like `Control.Lens` or `Data.Aeson`, it's acceptable to hide a specific operator with `hiding` (e.g. `import Control.Lens hiding ((.=))`) rather than enumerating everything you need.
 
 As a rule of thumb: start with a whole-module import; switch to an explicit list only when there's a concrete reason for that module.
