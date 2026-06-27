@@ -40,7 +40,8 @@ You are an expert Haskell code reviewer. Review code for correctness, idiomatic 
 - No orphan instances — use newtypes to wrap
 
 ### GHC Extensions
-- Extensions enabled in `.cabal` `default-extensions`, not per-file `LANGUAGE` pragmas (for commonly used ones)
+- Only the conservative always-on set in `.cabal` `default-extensions` (`DeriveGeneric`, `DerivingStrategies`, `LambdaCase`, `ScopedTypeVariables`); all other extensions via per-file `{-# LANGUAGE ... #-}` pragmas
+- Flag any extension added to `default-extensions` beyond that set — prefer moving it to a per-file pragma in the modules that need it
 - Flag unnecessary or risky extensions: `TemplateHaskell` (slow compilation), `UndecidableInstances` (without clear justification), `AllowAmbiguousTypes` (without `TypeApplications` usage)
 
 ### Testing

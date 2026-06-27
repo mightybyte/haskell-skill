@@ -99,6 +99,16 @@ my-project/
 
 ## Essential GHC Extensions
 
+### Policy: prefer per-file `LANGUAGE` pragmas over `default-extensions`
+
+Extensions should **not** be added to `default-extensions` in general. Only a
+small, conservative set is desirable to have enabled all the time (listed
+below). Everything else should be enabled with a per-file `{-# LANGUAGE ... #-}`
+pragma in the module that actually needs it. This keeps the effect of each
+extension localized and easy to audit, and avoids forcing extensions that are
+risky or situation-specific (e.g. `OverloadedStrings`, `TemplateHaskell`,
+`GeneralizedNewtypeDeriving`) on every module in a component.
+
 ### Always Enable (via `default-extensions` in .cabal)
 ```haskell
 DeriveGeneric           -- Derives Generic
@@ -107,30 +117,29 @@ LambdaCase              -- \case { ... } instead of \x -> case x of ...
 ScopedTypeVariables     -- forall a. ... lets you reference 'a' in where clauses
 ```
 
-### Use Freely When Needed
+### Enable per-file with a `{-# LANGUAGE ... #-}` pragma when needed
 ```haskell
 BangPatterns
 DeriveDataTypeable
 DeriveFunctor
-DeriveGeneric               -- Generic instances for aeson, etc.
 DerivingVia                 -- Derive via newtype coercion
 DuplicateRecordFields       -- Same field name in different records
 ExistentialQuantification   -- Hide type variables
 FlexibleContexts            -- Relax context restrictions
 FlexibleInstances           -- Relax instance head restrictions
 FunctionalDependencies      -- fundeps for MPTC
-GeneralizedNewtypeDeriving  -- Derive through newtypes
+GeneralizedNewtypeDeriving   -- Derive through newtypes
 MultiParamTypeClasses       -- Typeclasses with multiple params
 NumericUnderscores          -- More readable number syntax
 OverloadedRecordDot         -- record.field syntax (GHC 9.2+)
-OverloadedStrings           -- String literals as Text/ByteString (some projects always-enable this)
+OverloadedStrings           -- String literals as Text/ByteString
 RankNTypes                  -- Higher-rank polymorphism (forall inside arrows)
 RecordWildCards             -- Controversial but can be used effectively
+TemplateHaskell             -- Metaprogramming (aeson TH, lens TH). Slows compilation.
 ```
 
 ### Avoid unless there's a significant clear value
 ```haskell
-TemplateHaskell         -- Metaprogramming (aeson TH, lens TH). Slows compilation.
 GADTs                   -- Generalized algebraic data types
 TypeFamilies            -- Type-level functions
 DataKinds               -- Promote data constructors to types
@@ -406,7 +415,7 @@ modify' (\s -> s { count = count s + 1 })
 
 ## Common Gotchas
 
-1. **String is [Char]** — Use `Text` (from `text` package) everywhere. Enable `OverloadedStrings` for Text string literals.
+1. **String is [Char]** — Use `Text` (from `text` package) everywhere. Enable `OverloadedStrings` (per-file pragma) for Text string literals.
 2. **Lazy IO** — `readFile` from Prelude is lazy. Use `Data.Text.IO.readFile` or `ByteString.readFile` instead.
 3. **Orphan instances** — Don't define typeclass instances outside the module that defines the type or the class. Use newtypes to wrap.
 4. **Cabal hell** — Use Nix or cabal's built-in solver (v2-build). Don't use `cabal-install` v1 commands.

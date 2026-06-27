@@ -60,8 +60,10 @@ library
   -- Language and extensions
   default-language: Haskell2010
   default-extensions:
-      DerivingStrategies  
+      DeriveGeneric
+      DerivingStrategies
       LambdaCase
+      ScopedTypeVariables
   
   -- GHC options for all modules
   ghc-options: 
@@ -93,8 +95,6 @@ executable myproject-exe
   
   -- Language settings (inherit from common)
   default-language: Haskell2010
-  default-extensions:
-      OverloadedStrings
   
   -- Optimization for executables
   ghc-options:
@@ -120,15 +120,13 @@ test-suite myproject-test
   hs-source-dirs: test
   
   default-language: Haskell2010
-  default-extensions:
-      OverloadedStrings
-  
+
   ghc-options:
       -Wall
       -threaded
       -rtsopts
       -with-rtsopts=-N
-  
+
   build-depends:
       base,
       myproject,
@@ -189,11 +187,10 @@ name: myproject
 common shared-properties
   default-language: Haskell2010
   default-extensions:
-      OverloadedStrings
+      DeriveGeneric
       DerivingStrategies
       LambdaCase
-      MultiWayIf
-      TypeApplications
+      ScopedTypeVariables
   
   ghc-options:
       -Wall
@@ -358,7 +355,9 @@ if os(linux) || os(darwin)
 
 -- GHC version conditionals
 if impl(ghc >= 9.2)
-  default-extensions: OverloadedRecordDot
+  -- OverloadedRecordDot is available; enable it per-file with
+  -- {-# LANGUAGE OverloadedRecordDot #-} where needed, not here.
+  build-depends: some-pkg
 if impl(ghc < 9.0)
   build-depends: semigroups
 ```

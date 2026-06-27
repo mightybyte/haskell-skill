@@ -268,8 +268,8 @@ processData xs =
 
 ### Safe vs Unsafe Extensions
 ```haskell
--- Generally safe extensions
-{-# LANGUAGE OverloadedStrings #-}    -- Always safe
+-- Generally safe extensions (enable per-file with a pragma when needed)
+{-# LANGUAGE OverloadedStrings #-}    -- Safe to use per-file; not in default-extensions
 {-# LANGUAGE LambdaCase #-}           -- Pure syntax
 {-# LANGUAGE DerivingStrategies #-}   -- Explicit is better
 
