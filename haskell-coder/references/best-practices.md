@@ -18,11 +18,11 @@ If module A imports B and B imports A:
 ### Module Headers
 ```haskell
 -- |
--- Module      : MyProject.DB
+-- Module : MyProject.DB
 -- Description : Database access layer
--- Copyright   : (c) Your Name, 2024
--- License     : MIT
--- Maintainer  : you@example.com
+-- Copyright : (c) Your Name, 2024
+-- License : MIT
+-- Maintainer : you@example.com
 --
 -- Functions for querying and updating the database.
 -- All operations run in the 'App' monad and use connection pooling.
@@ -138,8 +138,8 @@ processOrder order = do
   pure receipt
   where
     validate o = ...
-    charge v  = ...
-    notify r  = ...
+    charge v = ...
+    notify r = ...
 
 -- Pattern match on the left when possible
 fib 0 = 0
@@ -149,8 +149,8 @@ fib n = fib (n-1) + fib (n-2)
 -- Use guards for conditional logic
 classify :: Int -> Text
 classify n
-  | n < 0     = "negative"
-  | n == 0    = "zero"
+  | n < 0 = "negative"
+  | n == 0 = "zero"
   | otherwise = "positive"
 ```
 

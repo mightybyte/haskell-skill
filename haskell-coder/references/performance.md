@@ -31,16 +31,16 @@ badSum = foldl (+) 0  -- Builds up thunk chain
 goodSum :: [Int] -> Int  
 goodSum = foldl' (+) 0  -- Forces evaluation at each step
 
--- Lazy fields cause space leaks
+-- Lazy fields can cause space leaks
 data BadCounter = BadCounter 
-  { count :: Int      -- Lazy field accumulates thunks
+  { count :: Int
   , name :: String 
   }
 
--- Better: strict fields
+-- Better: strict fields (force evaluation)
 data GoodCounter = GoodCounter
-  { count :: !Int     -- Strict field
-  , name :: !String   -- Forces evaluation
+  { count :: !Int
+  , name :: !String
   }
 ```
 
@@ -65,7 +65,7 @@ processData xs =
 -- Strict pattern matching in case
 parseNumber :: String -> Maybe Int
 parseNumber s = case readMaybe s of
-  !result@(Just _) -> result  -- Force evaluation of successful parse
+  !result@(Just _) -> result -- Force evaluation of successful parse
   Nothing -> Nothing
 ```
 
@@ -73,7 +73,7 @@ parseNumber s = case readMaybe s of
 ```haskell
 -- Unpack small strict fields directly into constructor
 data Point = Point 
-  { pointX :: {-# UNPACK #-} !Double  -- No pointer indirection
+  { pointX :: {-# UNPACK #-} !Double -- No pointer indirection
   , pointY :: {-# UNPACK #-} !Double
   } deriving (Show, Eq)
 
@@ -86,9 +86,9 @@ data RGB = RGB
 
 -- Don't unpack large or complex types
 data User = User
-  { userId :: {-# UNPACK #-} !Int     -- Good: small, simple
-  , userName :: !Text                 -- Don't unpack: Text is complex
-  , userTags :: [Tag]                 -- Don't unpack: list is lazy by design
+  { userId :: {-# UNPACK #-} !Int
+  , userName :: !Text
+  , userTags :: [Tag]
   }
 ```
 
@@ -98,17 +98,18 @@ import Control.DeepSeq
 
 -- seq: evaluate to weak head normal form (WHNF)
 forceHead :: [a] -> [a]
-forceHead xs = length xs `seq` xs  -- Forces spine evaluation
+forceHead xs = length xs `seq` xs -- Forces spine evaluation
 
 -- deepseq: fully evaluate structure  
 forceAll :: NFData a => [a] -> [a]
-forceAll xs = rnf xs `seq` xs  -- Forces complete evaluation
+forceAll xs = rnf xs `seq` xs -- Forces complete evaluation
 
 -- Custom NFData instances
 instance NFData User where
-  rnf User{..} = rnf userId `seq` 
-                 rnf userName `seq` 
-                 rnf userEmail
+  rnf User{..} =
+    rnf userId `seq` 
+    rnf userName `seq` 
+    rnf userEmail
 
 -- Parallel strategies with evaluation control
 import Control.Parallel.Strategies
@@ -128,23 +129,23 @@ cabal build --enable-profiling
 ./myapp +RTS -h -p
 
 # Different heap profiling modes
-./myapp +RTS -hc     # Cost center profiling
-./myapp +RTS -hm     # Module profiling
-./myapp +RTS -hy     # Type profiling
-./myapp +RTS -hd     # Closure description profiling
+./myapp +RTS -hc # Cost center profiling
+./myapp +RTS -hm # Module profiling
+./myapp +RTS -hy # Type profiling
+./myapp +RTS -hd # Closure description profiling
 
 # Generate visual heap profile
-hp2ps -c myapp.hp    # Creates myapp.ps
+hp2ps -c myapp.hp # Creates myapp.ps
 ```
 
 ### Cost Centers
 ```haskell
-{-# OPTIONS_GHC -fprof-auto #-}  -- Automatic cost centers
+{-# OPTIONS_GHC -fprof-auto #-} -- Automatic cost centers
 
 -- Manual cost centers for precision
 expensiveComputation :: [Int] -> Int
 expensiveComputation xs = {-# SCC "expensive_computation" #-}
-  sum $ map complexFunction xs
+    sum $ map complexFunction xs
   where
     complexFunction x = {-# SCC "complex_function" #-}
       x * x + fibonacci x
@@ -153,7 +154,7 @@ expensiveComputation xs = {-# SCC "expensive_computation" #-}
 main :: IO ()
 main = do
   let result = {-# SCC "main_computation" #-} 
-               expensiveComputation [1..10000]
+        expensiveComputation [1..10000]
   print result
 ```
 
@@ -205,9 +206,9 @@ For basic API usage of Vector, ByteString, and Text, see `libraries.md`.
 
 ### Choosing the Right Vector Type
 ```haskell
--- V.Vector:  Boxed — for complex types (User, etc.)
--- U.Vector:  Unboxed — for primitives (Int, Double) — faster, less memory
--- S.Vector:  Storable — for C interop via FFI
+-- V.Vector: Boxed — for complex types (User, etc.)
+-- U.Vector: Unboxed — for primitives (Int, Double) — faster, less memory
+-- S.Vector: Storable — for C interop via FFI
 
 -- In-place mutation for performance-critical code
 import qualified Data.Vector.Mutable as MV
@@ -298,24 +299,24 @@ import Control.Parallel
 -- Parallel map with controlled evaluation
 parMapChunk :: NFData b => Int -> (a -> b) -> [a] -> [b]  
 parMapChunk chunkSize f xs = 
-  concat $ map (map f) chunks `using` parList rdeepseq
+    concat $ map (map f) chunks `using` parList rdeepseq
   where
     chunks = chunksOf chunkSize xs
 
 -- Speculative parallelism
 fibPar :: Int -> Int  
 fibPar n
-  | n < 2 = n
-  | otherwise = par a (pseq b (a + b))
+    | n < 2 = n
+    | otherwise = par a (pseq b (a + b))
   where
-    a = fibPar (n-1)  -- Computed in parallel
-    b = fibPar (n-2)  -- Computed sequentially
+    a = fibPar (n-1) -- Computed in parallel
+    b = fibPar (n-2) -- Computed sequentially
 
 -- Divide and conquer parallelism  
 mergeSort :: Ord a => [a] -> [a]
 mergeSort xs
-  | length xs <= 1 = xs
-  | otherwise = merge left' right' `using` rpar left' `seq` rpar right'
+    | length xs <= 1 = xs
+    | otherwise = merge left' right' `using` rpar left' `seq` rpar right'
   where
     (leftHalf, rightHalf) = splitAt (length xs `div` 2) xs
     left' = mergeSort leftHalf  
@@ -343,9 +344,9 @@ main = defaultMain
 -- Different evaluation strategies
 benchmarks :: [Benchmark]  
 benchmarks =
-  [ bench "whnf" $ whnf expensiveFunction input     -- Weak head normal form
-  , bench "nf" $ nf expensiveFunction input         -- Full evaluation
-  , bench "io" $ whnfIO (expensiveIO input)         -- IO actions
+  [ bench "whnf" $ whnf expensiveFunction input -- Weak head normal form
+  , bench "nf" $ nf expensiveFunction input -- Full evaluation
+  , bench "io" $ whnfIO (expensiveIO input) -- IO actions
   ]
 ```
 
@@ -380,9 +381,9 @@ memoryBenchmarks = mainWith $ do
 ```cabal
 -- In cabal file
 ghc-options: 
-  -O2                    -- Full optimization
-  -Wall                  -- All warnings
-  -Wcompat               -- Compatibility warnings  
+  -O2
+  -Wall
+  -Wcompat
   -Wincomplete-record-updates
   -Wincomplete-uni-patterns
   -Wmissing-home-modules
@@ -392,29 +393,29 @@ ghc-options:
 -- For executables
 if flag(release)
   ghc-options: 
-    -threaded           -- Enable SMP support
-    -rtsopts            -- Runtime system options
-    -with-rtsopts=-N    -- Use all cores
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
     -O2 
     -funbox-strict-fields
-    -fllvm              -- LLVM backend (if available)
+    -fllvm -- LLVM backend (if available)
 ```
 
 ### Runtime System Options
 ```bash
 # Garbage collection tuning
-./myapp +RTS -A32M      # Increase allocation area (default 1M)
-./myapp +RTS -H128M     # Suggest heap size  
-./myapp +RTS -G1        # Use single generation GC
+./myapp +RTS -A32M # Increase allocation area (default 1M)
+./myapp +RTS -H128M # Suggest heap size  
+./myapp +RTS -G1 # Use single generation GC
 
 # Parallel execution
-./myapp +RTS -N4        # Use 4 cores
-./myapp +RTS -N         # Use all available cores
+./myapp +RTS -N4 # Use 4 cores
+./myapp +RTS -N # Use all available cores
 
 # Profiling  
-./myapp +RTS -p         # Time profiling
-./myapp +RTS -h         # Heap profiling
-./myapp +RTS -s         # GC statistics
+./myapp +RTS -p # Time profiling
+./myapp +RTS -h # Heap profiling
+./myapp +RTS -s # GC statistics
 ```
 
 ## Common Performance Antipatterns

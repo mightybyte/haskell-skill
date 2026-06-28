@@ -64,8 +64,8 @@
         # Package-specific settings
         settings = {
           myproject-core = {
-            jailbreak = true;      # Ignore version bounds
-            check = false;         # Disable tests for this package
+            jailbreak = true; # Ignore version bounds
+            check = false; # Disable tests for this package
           };
           myproject-web = {
             buildFromSdist = true; # Test packaging

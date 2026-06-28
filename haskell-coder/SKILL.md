@@ -8,7 +8,7 @@ description: Expert Haskell development skill. Covers type-driven design, GHC ex
 ## Core Philosophy
 
 1. **Types are the design** — Make illegal states unrepresentable. If the type checker accepts it, we would like it to be correct.
-2. **Purity by default** — Side effects are explicit in the type system. `IO` is a feature, not a burden.
+2. **Prefer Purity** — Put as much code into pure functions as possible.  Also, `IO` is a feature, not a burden.
 3. **Laziness as a tool** — Enables elegant abstractions but demands awareness of space leaks.
 4. **Correctness first, then performance** — Get it right, then profile, then optimize.
 5. **Keep it Simple** — Purity and strong types (i.e. roughly Haskell2010) gives you the majority of Haskell's value.  Avoid more advanced language features unless absolutely necessary.
@@ -25,9 +25,9 @@ cabal init --interactive
 Minimal `my-project.cabal`:
 ```cabal
 cabal-version: 3.0
-name:          my-project
-version:       0.1.0.0
-build-type:    Simple
+name: my-project
+version: 0.1.0.0
+build-type: Simple
 
 common warnings
     ghc-options: -Wall -Werror -Wcompat -Widentities
@@ -37,33 +37,38 @@ common warnings
                  -Wredundant-constraints
 
 library
-    import:           warnings
-    exposed-modules:  MyProject
-    build-depends:    base >= 4.17 && < 5
-                    , text
-                    , containers
-                    , aeson
-    hs-source-dirs:   src
-    default-language:  Haskell2010
+    import: warnings
+    exposed-modules: MyProject
+    build-depends:
+      base >= 4.17 && < 5,
+      text,
+      containers,
+      aeson,
+    hs-source-dirs: src
+    default-language: Haskell2010
     default-extensions:
-        DeriveGeneric
-        DerivingStrategies
-        LambdaCase
-        ScopedTypeVariables
+      DeriveGeneric
+      DerivingStrategies
+      LambdaCase
+      ScopedTypeVariables
 
 executable my-project
-    import:           warnings
-    main-is:          Main.hs
-    build-depends:    base, my-project
-    hs-source-dirs:   exe
+    import: warnings
+    main-is: Main.hs
+    build-depends: base, my-project
+    hs-source-dirs: exe
     default-language: Haskell2010
 
 test-suite tests
-    import:           warnings
-    type:             exitcode-stdio-1.0
-    main-is:          Main.hs
-    build-depends:    base, my-project, hspec, QuickCheck
-    hs-source-dirs:   test
+    import: warnings
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    build-depends:
+      base,
+      my-project,
+      hspec,
+      QuickCheck
+    hs-source-dirs: test
     default-language: Haskell2010
 ```
 
@@ -149,13 +154,13 @@ padding that's the problem.
 ```haskell
 -- AVOID: the `::` is padded to the longest field, so adding/renaming a field re-aligns every line
 data Person = Person
-  { _person_name :: Text
-  , _person_age  :: Int
+  { _person_firstName :: Text
+  , _person_age :: Int
   } deriving (Eq, Ord, Show, Read)
 
 -- PREFER: a single space before each `::` — adding or renaming a field is a one-line diff
 data Person = Person
-  { _person_name :: Text
+  { _person_firstName :: Text
   , _person_age :: Int
   } deriving (Eq, Ord, Show, Read)
 ```
@@ -169,8 +174,8 @@ any identifier, so adding or removing an import never re-spaces the other lines:
 
 ```haskell
 import qualified Data.Text as T
-import           Data.Map (Map)
-import           Control.Monad (when, unless)
+import           Data.Text (Text)
+import           Control.Monad
 ```
 
 ## Essential GHC Extensions
@@ -187,10 +192,10 @@ risky or situation-specific (e.g. `OverloadedStrings`, `TemplateHaskell`,
 
 ### Always Enable (via `default-extensions` in .cabal)
 ```haskell
-DeriveGeneric           -- Derives Generic
-DerivingStrategies      -- Explicit: deriving stock, newtype, anyclass, via
-LambdaCase              -- \case { ... } instead of \x -> case x of ...
-ScopedTypeVariables     -- forall a. ... lets you reference 'a' in where clauses
+DeriveGeneric
+DerivingStrategies
+LambdaCase
+ScopedTypeVariables
 ```
 
 ### Enable per-file with a `{-# LANGUAGE ... #-}` pragma when needed
@@ -198,31 +203,30 @@ ScopedTypeVariables     -- forall a. ... lets you reference 'a' in where clauses
 BangPatterns
 DeriveDataTypeable
 DeriveFunctor
-DerivingVia                 -- Derive via newtype coercion
-DuplicateRecordFields       -- Same field name in different records
-ExistentialQuantification   -- Hide type variables
-FlexibleContexts            -- Relax context restrictions
-FlexibleInstances           -- Relax instance head restrictions
-FunctionalDependencies      -- fundeps for MPTC
-GeneralizedNewtypeDeriving   -- Derive through newtypes
-MultiParamTypeClasses       -- Typeclasses with multiple params
-NumericUnderscores          -- More readable number syntax
-OverloadedRecordDot         -- record.field syntax (GHC 9.2+)
-OverloadedStrings           -- String literals as Text/ByteString
-RankNTypes                  -- Higher-rank polymorphism (forall inside arrows)
-RecordWildCards             -- Controversial but can be used effectively
-TemplateHaskell             -- Metaprogramming (aeson TH, lens TH). Slows compilation.
+DerivingVia
+ExistentialQuantification
+FlexibleContexts
+FlexibleInstances
+FunctionalDependencies
+GeneralizedNewtypeDeriving
+MultiParamTypeClasses
+NumericUnderscores
+OverloadedStrings
+RankNTypes
+RecordWildCards
+TemplateHaskell
 ```
 
 ### Avoid unless there's a significant clear value
 ```haskell
-GADTs                   -- Generalized algebraic data types
-TypeFamilies            -- Type-level functions
-DataKinds               -- Promote data constructors to types
-ConstraintKinds         -- Alias constraint sets
-UndecidableInstances    -- Sometimes needed for MTL/type families. Understand why.
-TypeOperators           -- type a :+: b. Servant uses heavily.
-AllowAmbiguousTypes     -- Pair with TypeApplications for type-level dispatch.
+GADTs
+TypeFamilies
+DataKinds
+ConstraintKinds
+UndecidableInstances
+TypeOperators
+DuplicateRecordFields
+AllowAmbiguousTypes
 ```
 
 ## Type-Driven Development
@@ -277,7 +281,7 @@ data Draft
 data Published
 
 data Article (s :: Type) = Article
-  { articleTitle   :: !Text
+  { articleTitle :: !Text
   , articleContent :: !Text
   }
 
@@ -291,8 +295,10 @@ share = ...
 
 ### Newtypes for Safety
 ```haskell
-newtype UserId    = UserId    { unUserId    :: Int64 } deriving newtype (Eq, Ord, Show, FromJSON, ToJSON)
-newtype ProductId = ProductId { unProductId :: Int64 } deriving newtype (Eq, Ord, Show, FromJSON, ToJSON)
+newtype UserId    = UserId { unUserId :: Int64 }
+  deriving newtype (Eq, Ord, Show, FromJSON, ToJSON)
+newtype ProductId = ProductId { unProductId :: Int64 }
+  deriving newtype (Eq, Ord, Show, FromJSON, ToJSON)
 
 -- Now you can't accidentally pass a ProductId where UserId is expected
 getUser :: UserId -> IO User
@@ -356,9 +362,9 @@ There are many possible subsets of the environment that different functions migh
 ```haskell
 -- The environment holds resources and config, not mutable business state.
 data AppEnv = AppEnv
-  { appDbPool   :: !Pool Connection
-  , appLogger   :: !Logger
-  , appConfig   :: !Config
+  { appDbPool :: !Pool Connection
+  , appLogger :: !Logger
+  , appConfig :: !Config
   }
 
 -- Newtype over ReaderT Env IO. Avoid deeper transformer stacks —
@@ -398,9 +404,9 @@ grabPool = asks obtain
 -- Use lens/optics for: nested updates, traversals, prisms for sum types.
 
 -- lens: view, set, over
-view _1 (1, 2)       -- 1
-set _1 10 (1, 2)     -- (10, 2)
-over _1 (+1) (1, 2)  -- (2, 2)
+view _1 (1, 2) -- 1
+set _1 10 (1, 2) -- (10, 2)
+over _1 (+1) (1, 2) -- (2, 2)
 
 -- Compose with (.)
 view (config . database . host) appEnv

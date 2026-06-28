@@ -269,14 +269,14 @@ processData xs =
 ### Safe vs Unsafe Extensions
 ```haskell
 -- Generally safe extensions (enable per-file with a pragma when needed)
-{-# LANGUAGE OverloadedStrings #-}    -- Safe to use per-file; not in default-extensions
-{-# LANGUAGE LambdaCase #-}           -- Pure syntax
-{-# LANGUAGE DerivingStrategies #-}   -- Explicit is better
+{-# LANGUAGE OverloadedStrings #-} -- Safe to use per-file; not in default-extensions
+{-# LANGUAGE LambdaCase #-} -- Pure syntax
+{-# LANGUAGE DerivingStrategies #-} -- Explicit is better
 
 -- Use with caution
-{-# LANGUAGE UndecidableInstances #-}  -- Can cause infinite loops
-{-# LANGUAGE IncoherentInstances #-}   -- Breaks type system guarantees  
-{-# LANGUAGE OverlappingInstances #-}  -- Use OVERLAPPING pragma instead
+{-# LANGUAGE UndecidableInstances #-} -- Can cause infinite loops
+{-# LANGUAGE IncoherentInstances #-} -- Breaks type system guarantees  
+{-# LANGUAGE OverlappingInstances #-} -- Use OVERLAPPING pragma instead
 ```
 
 These extensions unlock Haskell's advanced type system features while maintaining the language's strong guarantees about correctness and performance.

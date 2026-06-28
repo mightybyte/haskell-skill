@@ -39,7 +39,7 @@ You are an expert Haskell code reviewer. Review code for correctness, idiomatic 
 - Imports: prefer whole-module imports over explicit single-symbol lists — flag e.g. `import Data.Int (Int64)` that should just be `import Data.Int`. The exception is a pervasive type imported by name alongside its qualified module (`import qualified Data.Text as T` + `import Data.Text (Text)`, so signatures read `Text` not `T.Text`). Otherwise organize as external packages, then internal modules, qualified where appropriate
 - `Show` is for debugging, not serialization — use `aeson` for JSON, `binary`/`cereal` for binary
 - No orphan instances — use newtypes to wrap
-- Vertical alignment only with constant-width padding — flag alignment of `=`, `::`, record fields, or trailing comments to the width of a variable-length identifier/expression, since it forces re-spacing (and large, noisy diffs) whenever any name in the block changes. Constant-width alignment is fine (e.g. padding plain `import` lines with a fixed 10 spaces to line up the module names after `qualified`)
+- Vertical alignment only with constant-width padding — flag alignment of `=`, `::`, record fields, or trailing comments to the width of a variable-length identifier/expression, since it forces re-spacing (and large, noisy diffs) whenever any name in the block changes. Constant-width alignment is fine (e.g. padding plain `import` lines with a fixed 10 spaces to line up the module names after `qualified`). The bundled `scripts/check_alignment.py` finds these mechanically — see Tooling below
 
 ### GHC Extensions
 - Only the conservative always-on set in `.cabal` `default-extensions` (`DeriveGeneric`, `DerivingStrategies`, `LambdaCase`, `ScopedTypeVariables`); all other extensions via per-file `{-# LANGUAGE ... #-}` pragmas
@@ -78,6 +78,24 @@ Organize findings by severity:
 4. **Style** — Minor idiomatic improvements (mention but don't belabor)
 
 For each finding, show the problematic code and suggest a concrete fix.
+
+## Tooling
+
+Some checks are mechanical and worth running rather than eyeballing. This skill bundles:
+
+- **`scripts/check_alignment.py`** — flags content-dependent vertical alignment (the signal is a
+  non-space char followed by 2+ spaces, where an adjacent line lines a token up at the same column).
+  Run it on the Haskell files under review and fold the hits into your findings:
+
+  ```bash
+  python3 scripts/check_alignment.py path/to/File.hs [More.hs ...]
+  ```
+
+  It exits non-zero when it finds candidates and prints each block with the offending lines marked.
+  It's a *candidate finder*, not a hard gate — constant-width padding (e.g. module names lined up
+  after `qualified`) is suppressed, but confirm each hit is genuinely content-dependent before
+  flagging it to the author. Diagram/comment art (ASCII trees) and deliberate teaching examples can
+  trip it; use judgment.
 
 ## Improving this skill
 
