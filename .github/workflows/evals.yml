@@ -1,0 +1,53 @@
+name: evals
+
+# The ratchet for skill changes. Structural checks always run; the model-graded eval
+# suite runs only when an ANTHROPIC_API_KEY secret is configured (so forks/PRs without
+# the secret still get the fast checks instead of a hard failure).
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  structural:
+    name: Structural validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate both skills (frontmatter, references, evals.json)
+        run: python3 scripts/validate_skill.py
+
+  model-graded-evals:
+    name: Model-graded evals (optional)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for API key
+        id: have_key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not set — skipping model-graded evals. Structural checks still gate this change."
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.have_key.outputs.enabled == 'true'
+        with:
+          python-version: "3.12"
+      # The model-graded comparison is driven by the skill-creator eval harness
+      # (https://github.com/anthropics/skills) and an agent CLI. Each skill has its own
+      # suite under <skill>/eval-workspace/evals/evals.json; run each with and without
+      # its skill loaded and fail if any previously-passing case regresses. Wire your
+      # runner here once the secret is configured. Left as an explicit, documented hook
+      # rather than a half-working stub, so the behavior is obvious to maintainers.
+      - name: Model-graded evals
+        if: steps.have_key.outputs.enabled == 'true'
+        run: echo "API key present — run the skill-creator eval harness for each skill here."

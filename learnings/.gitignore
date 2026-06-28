@@ -1,0 +1,8 @@
+# Local skill-improvement captures are private by default and never committed.
+# They may reference your own/house code and conventions — only generalized,
+# publicly-corroborated (or reproducible) lessons belong upstream (see ../CONTRIBUTING.md).
+# Track only the README and the template; ignore every actual capture.
+*
+!.gitignore
+!README.md
+!TEMPLATE.md

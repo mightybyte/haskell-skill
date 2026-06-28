@@ -1,0 +1,59 @@
+{
+  "skill_name": "haskell-coder",
+  "note": "Seed suite. Cases are grounded in the skill's opinionated guidance. Maintainers should refine assertions and add cases per CONTRIBUTING.md (each contribution should add a case that fails on the old skill and passes on the new).",
+  "evals": [
+    {
+      "id": 0,
+      "name": "readert-over-transformer-stack",
+      "prompt": "I'm structuring a web service in Haskell. My application monad is currently `newtype App a = App (ExceptT AppError (StateT AppState (ReaderT AppEnv IO)) a)`. I use StateT for a request counter and some in-memory caches, and ExceptT for domain errors. Is this a good design, and if not how should I structure the app monad?",
+      "expected_output": "Recommends a newtype over ReaderT Env IO instead of a deep transformer stack; replace StateT with an IORef/TVar held in the environment; drop ExceptT and throw exceptions in IO, catching at boundaries; the env should hold resources (pools, loggers, config), not mutable business state. Bonus: Has-pattern / least-context MonadReader constraints, runApp unwrap.",
+      "files": [],
+      "assertions": [
+        "Recommends a newtype over `ReaderT Env IO` rather than a deep transformer stack",
+        "Says to replace StateT with an IORef/TVar held in the environment, not StateT in the stack",
+        "Says to drop ExceptT and throw exceptions in IO, catching at boundaries",
+        "Notes the environment should hold resources (pools, loggers, config), not mutable business state",
+        "Bonus: mentions the Has-pattern / polymorphic MonadReader constraints for least-context functions"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "make-illegal-states-unrepresentable",
+      "prompt": "Here's a type I'm using in production: `data User = User { userRole :: String, userEmail :: String, userId :: Int64 }`. Roles are only ever \"admin\", \"editor\", or \"viewer\", and emails must contain an @. How would an experienced Haskeller improve this type?",
+      "expected_output": "Replace the stringly-typed role with a sum type (Admin | Editor | Viewer); wrap email in a newtype with a smart constructor that validates; use a newtype for the identifier (UserId) so it can't be confused with other Int64 ids; strict fields. Bonus: type-prefixed field names to avoid global record-name clashes, DerivingStrategies.",
+      "files": [],
+      "assertions": [
+        "Replaces the stringly-typed role with a sum type (e.g. data Role = Admin | Editor | Viewer)",
+        "Wraps the email in a newtype with a smart constructor that validates the invariant",
+        "Uses a newtype for the identifier (e.g. UserId) to prevent mixing it with other Int64 ids",
+        "Recommends strict fields (!) on the record",
+        "Bonus: type-prefixed field names to avoid global name clashes, and/or explicit DerivingStrategies"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "foldl-space-leak",
+      "prompt": "My Haskell batch job runs out of memory while summing a few million integers with `foldl (+) 0 xs`. Why does this happen and what's the idiomatic fix?",
+      "expected_output": "Explains that lazy foldl builds a large thunk chain (space leak) because it doesn't evaluate the accumulator as it goes; fix is foldl' (strict left fold). Bonus: general strictness awareness — strict fields, modify' over modify, BangPatterns.",
+      "files": [],
+      "assertions": [
+        "Explains the lazy foldl thunk buildup / space leak (accumulator not forced as it goes)",
+        "Recommends foldl' (the strict left fold) as the fix",
+        "Bonus: connects to broader strictness practice (strict fields, modify', BangPatterns)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "extensions-default-vs-per-file",
+      "prompt": "To avoid pragma boilerplate, can I just dump all the GHC extensions my team likes into `default-extensions` in the cabal file? We want OverloadedStrings, TemplateHaskell, and GeneralizedNewtypeDeriving available everywhere.",
+      "expected_output": "Advises against a broad default-extensions list; prefer per-file {-# LANGUAGE #-} pragmas so each extension's effect is localized and auditable. Keep only a small conservative always-on set (DeriveGeneric, DerivingStrategies, LambdaCase, ScopedTypeVariables). Specifically keep risky/situational ones (OverloadedStrings, TemplateHaskell, GeneralizedNewtypeDeriving) per-file. Bonus: rationale.",
+      "files": [],
+      "assertions": [
+        "Advises against a broad default-extensions list; prefers per-file LANGUAGE pragmas",
+        "Names the small conservative always-on set (DeriveGeneric, DerivingStrategies, LambdaCase, ScopedTypeVariables)",
+        "Specifically cautions that risky/situational extensions (OverloadedStrings, TemplateHaskell, GeneralizedNewtypeDeriving) should be per-file, not global",
+        "Bonus: gives the rationale (localized, auditable effect per module)"
+      ]
+    }
+  ]
+}

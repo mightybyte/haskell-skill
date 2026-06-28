@@ -1,0 +1,10 @@
+# Eval harness RUN OUTPUTS are generated artifacts, not source — regenerated on every
+# run and not meaningfully reviewable in diffs. The eval DEFINITIONS
+# (<skill>/eval-workspace/evals/) ARE source and stay tracked.
+*/eval-workspace/iteration-*/
+*/eval-workspace/skill-snapshot/
+*/eval-workspace/**/feedback.json
+
+# Python
+__pycache__/
+*.pyc

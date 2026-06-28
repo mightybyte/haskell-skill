@@ -505,3 +505,27 @@ For detailed information, see:
 - `references/nix-haskell.md` — Nix-based Haskell development (nixpkgs + haskell.nix)
 - `references/cabal-guide.md` — Cabal format, multi-package projects, Hackage publishing
 - `references/best-practices.md` — Code organization, Haddock, CI, style guide
+
+## Improving this skill
+
+This skill is open source and meant to get sharper with use — for you locally, and (when a lesson
+generalizes) for everyone. The loop is shared across the repo; see `../CONTRIBUTING.md` for the full
+process.
+
+- **Capture when it's wrong.** If you follow this guidance and it turns out mistaken, dated, or thin,
+  jot a short note in `../learnings/` — *what the skill said → what's actually better → how you know*.
+  Captures are git-ignored and local; even a `local-only` note sharpens the skill on your own
+  codebase next time.
+- **Corroborate before sharing.** A lesson may flow upstream only if you can back it with an
+  authoritative public source (the GHC User's Guide, the Haskell Report, a library's Hackage
+  Haddocks, the PVP) **or a minimal module that compiles/runs and demonstrates it**. In Haskell the
+  reproducing example is often the strongest evidence — and it carries no private detail. Generalize
+  away from house style; if it won't generalize, keep it `local-only`.
+- **Respect the skill's opinion — or argue to change it.** This guide is deliberately opinionated
+  (ReaderT-over-stacks, strict-by-default, `Text`-not-`String`, a conservative `default-extensions`
+  set). Revising an opinion needs a concrete, demonstrable tradeoff, not a preference.
+- **Propose it as an eval-backed change.** Pair the edit with a test: a case in
+  `eval-workspace/evals/evals.json` that the current skill gets wrong and your edit gets right. The
+  eval suite is the ratchet that stops improvements from regressing what already works.
+- **A human approves the merge.** Drafting is automatable; merging isn't. Open a PR with explicit
+  sign-off — never auto-push.

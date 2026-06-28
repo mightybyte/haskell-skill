@@ -111,7 +111,28 @@ These skills are intentionally opinionated. Rather than presenting every possibl
 
 ## Contributing
 
-Contributions are welcome. If you have improvements grounded in real-world Haskell experience, please open a pull request.
+These skills are built to **improve from collective experience**, through one safe, eval-backed loop.
+When a skill is wrong, dated, or thin, the path is: capture the lesson, corroborate it (an
+authoritative citation *or* a minimal module that compiles and demonstrates the point), add a test
+case that the current skill fails and your fix passes, make the prose edit, and open a PR. A
+maintainer reviews and merges — changes are never auto-merged. See **[CONTRIBUTING.md](CONTRIBUTING.md)**
+for the full process.
+
+Supporting structure:
+
+```
+CONTRIBUTING.md              The eval-backed, corroborated change process (covers both skills).
+learnings/                   Local skill-improvement captures (git-ignored; never committed).
+scripts/validate_skill.py    Fast structural checks (frontmatter, reference links, evals.json).
+.github/                     Issue/PR templates + CI workflow (the eval ratchet).
+<skill>/eval-workspace/
+  evals/evals.json           The skill's test suite — tracked; this is source.
+  iteration-*/, ...          Generated run output — git-ignored.
+```
+
+Run `python3 scripts/validate_skill.py` before opening a PR. Because these skills are intentionally
+opinionated, a change that *revises* a recommendation should make the case with a concrete tradeoff,
+not just a preference.
 
 ## License
 

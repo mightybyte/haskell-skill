@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Haskell language / library question
+    url: https://hackage.haskell.org/
+    about: For general Haskell or library usage questions, start with Hackage and the GHC User's Guide.

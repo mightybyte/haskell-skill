@@ -76,3 +76,27 @@ Organize findings by severity:
 4. **Style** — Minor idiomatic improvements (mention but don't belabor)
 
 For each finding, show the problematic code and suggest a concrete fix.
+
+## Improving this skill
+
+This skill is open source and meant to get sharper with use — for you locally, and (when a lesson
+generalizes) for everyone. The loop is shared across the repo; see `../CONTRIBUTING.md` for the full
+process.
+
+- **Capture when it's wrong.** If a review here misses a real problem, or flags a non-issue, jot a
+  short note in `../learnings/` — *what the checklist said → what it should catch (or stop catching) →
+  how you know*. Captures are git-ignored and local; even a `local-only` note sharpens reviews on your
+  own codebase next time. The two failure modes to watch for are **misses** (a real bug the checklist
+  doesn't cover) and **false positives** (flagging idiomatic code).
+- **Corroborate before sharing.** A lesson may flow upstream only if you can back it with an
+  authoritative public source (the GHC User's Guide, the Haskell Report, a library's Hackage
+  Haddocks, the PVP) **or a minimal module that compiles/runs and demonstrates it**. Generalize away
+  from house style; if it won't generalize, keep it `local-only`.
+- **Respect the skill's opinion — or argue to change it.** This reviewer is deliberately opinionated
+  (it flags deep transformer stacks, lazy folds, `String`, partial functions). Revising what counts
+  as a finding needs a concrete, demonstrable tradeoff, not a preference.
+- **Propose it as an eval-backed change.** Pair the edit with a test: a case in
+  `eval-workspace/evals/evals.json` — the code to review plus what the review must (or must not) say —
+  that the current skill gets wrong and your edit gets right. The eval suite is the ratchet.
+- **A human approves the merge.** Drafting is automatable; merging isn't. Open a PR with explicit
+  sign-off — never auto-push.
