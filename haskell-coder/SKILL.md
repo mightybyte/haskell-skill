@@ -236,6 +236,18 @@ data User = User
   } deriving (Eq,Ord,Show,Read,Generic)
 ```
 
+The `_<type>_<field>` scheme is deliberate on three counts:
+
+- **Leading underscore** — `lens`'s `makeLenses` / `makePrisms` only generate optics for fields that
+  start with `_` (from `_user_email` you get a `user_email` lens). Naming fields this way from the
+  start means you can drop in `makeLenses ''User` later without renaming any fields or touching call
+  sites — no sweeping rename to "add lenses."
+- **Type prefix** — record selectors are top-level functions with *module-global* scope, so two types
+  with a `name` field would clash. Prefixing with the type name keeps every selector unique.
+- **A second underscore between type and field** — it's a deterministic separator, so `_user_email`
+  can be split mechanically (`_<type>_<field>`) to recover the owning type. That makes the scheme
+  introspectable for code generation, rather than guessing where the type name ends.
+
 ### Make Illegal States Unrepresentable
 ```haskell
 -- BAD: stringly-typed
