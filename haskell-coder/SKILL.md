@@ -124,11 +124,54 @@ Rationale:
 Caveats / when explicit imports are still appropriate:
 
 - **Name clashes.** If two modules export the same name and you need both, qualify one (`import qualified Data.Map as M`) or import the other explicitly to surface what's being shadowed.
-- **`qualified` imports.** Always use `qualified` with an alias for modules you intend to use prefixed (`import qualified Data.Text as T`).
+- **`qualified` imports.** Always use `qualified` with an alias for modules you intend to use prefixed (`import qualified Data.Text as T`). For a *pervasive type* it's idiomatic to also import the bare type name explicitly alongside the qualified module, so signatures read `Text` rather than `T.Text`:
+  ```haskell
+  import qualified Data.Text as T
+  import Data.Text (Text)
+  ```
+  This explicit-name exception is reserved for a few ubiquitous types like `Text`. For everything else, still prefer the whole-module import — `import Data.Int`, not `import Data.Int (Int64)`.
 - **Prelude replacements.** A `NoImplicitPrelude` module should explicitly list what it re-exports from its chosen prelude.  Alternative Preludes are strongly discouraged.  They can significantly change coding patterns from what LLMs expect.
 - **Large, overlapping namespaces.** For modules like `Control.Lens` or `Data.Aeson`, it's acceptable to hide a specific operator with `hiding` (e.g. `import Control.Lens hiding ((.=))`) rather than enumerating everything you need.
 
 As a rule of thumb: start with a whole-module import; switch to an explicit list only when there's a concrete reason for that module.
+
+## Vertical alignment
+
+Add alignment spacing only when the padding is a **constant** width. Never align to the width of a
+**variable-length construct** — an identifier, type name, or expression. When a column's position
+tracks the longest name in a block, adding, renaming, or removing a single entry re-spaces every other
+line, inflating the diff (and the tokens an agent spends reading and rewriting it) far out of
+proportion to the change, for a purely cosmetic gain. This covers padding that aligns `=`, `::`, `->`,
+or trailing comments into columns — including the `::` in a record's fields. Writing records one field
+per line with a single space before `::` is the normal, encouraged style; it's only the extra column
+padding that's the problem.
+
+```haskell
+-- AVOID: the `::` is padded to the longest field, so adding/renaming a field re-aligns every line
+data Person = Person
+  { _person_name :: Text
+  , _person_age  :: Int
+  } deriving (Eq, Ord, Show, Read)
+
+-- PREFER: a single space before each `::` — adding or renaming a field is a one-line diff
+data Person = Person
+  { _person_name :: Text
+  , _person_age :: Int
+  } deriving (Eq, Ord, Show, Read)
+```
+
+Constant-width indentation (a fixed number of leading spaces) is fine — it's only *content-dependent*
+alignment, where the spacing is a function of some identifier's length, that causes the churn.
+
+A good example of *acceptable* alignment is padding plain `import` lines with a fixed 10 extra spaces
+(the width of `qualified `) so the module names line up. The offset is fixed by the keyword, not by
+any identifier, so adding or removing an import never re-spaces the other lines:
+
+```haskell
+import qualified Data.Text as T
+import           Data.Map (Map)
+import           Control.Monad (when, unless)
+```
 
 ## Essential GHC Extensions
 
@@ -204,10 +247,11 @@ data Role = Admin | Editor | Viewer
 
 newtype Email = Email { _unEmail :: Text }  -- smart constructor validates
 
-mkEmail :: Text -> Either EmailError Email
+-- Plain String error: it's only reported, not matched on for flow control.
+mkEmail :: Text -> Either String Email
 mkEmail t
   | "@" `T.isInfixOf` t = Right (Email t)
-  | otherwise = Left InvalidEmail
+  | otherwise = Left "email must contain '@'"
 
 data User = User
   { _user_role  :: !Role
@@ -244,9 +288,16 @@ getUser :: UserId -> IO User
 
 ## Error Handling
 
+**Default to simple `String`/`Text` errors.** For the common case — an error that's only reported or
+logged, never matched on — use `Either String` (or `ExceptT String`). Reach for a bespoke error ADT
+only once the program actually pattern-matches on the error to drive control flow. A typed error
+that's just shown to a user is over-engineering: it adds threading friction for no payoff, and weaving
+rich error types through ordinary control flow tends to hurt readability. Start with `String`;
+introduce a typed error only when you have a clear flow-control need.
+
 ```haskell
--- Pure errors: Either
-parseConfig :: Text -> Either ConfigError Config
+-- Pure errors: Either — default to a plain String message
+parseConfig :: Text -> Either String Config
 
 -- App-level errors: ExceptT or MonadError
 class Monad m => MonadError e m where
@@ -257,6 +308,8 @@ class Monad m => MonadError e m where
 newtype App a = App { unApp :: ReaderT AppEnv IO a }
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadReader AppEnv)
 
+-- A typed error EARNS its keep here only if you match on it (e.g. map to an HTTP
+-- status). If you just log it, Either String / ExceptT String is simpler.
 data AppError
   = NotFound Text
   | Unauthorized
@@ -268,6 +321,7 @@ throwIO :: Exception e => e -> IO a
 catch   :: Exception e => IO a -> (e -> IO a) -> IO a
 
 -- RULE: Use Either for expected failures, exceptions for unexpected/IO failures.
+-- Default the error type to String; only reach for a sum type when you match on it.
 -- Never use error/undefined in library code.
 ```
 

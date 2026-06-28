@@ -27,6 +27,7 @@
         "Flags the deep transformer stack and recommends a newtype over `ReaderT Env IO`",
         "Flags `StateT` and recommends an IORef/TVar in the environment instead",
         "Flags `ExceptT` and recommends throwing exceptions in IO, caught at boundaries",
+        "Notes that an explicit error type should default to ExceptT String / Either String rather than a bespoke error ADT unless matched on for flow control",
         "Flags mutable business state in the env (envUsers :: IORef [User]) — env should hold resources, not business data",
         "Bonus: notes non-strict env fields and/or the Has-pattern / missing runApp"
       ]
@@ -34,7 +35,7 @@
     {
       "id": 2,
       "name": "review-idiomatic-no-false-positives",
-      "prompt": "Review this module.\n\n```haskell\nmodule Domain.User where\n\nimport qualified Data.Text as T\nimport Data.Text (Text)\nimport Data.Int (Int64)\n\nnewtype UserId = UserId { unUserId :: Int64 }\n  deriving newtype (Eq, Ord, Show)\n\ndata Role = Admin | Editor | Viewer\n  deriving stock (Eq, Ord, Show)\n\nnewtype Email = Email { unEmail :: Text }\n  deriving stock (Eq, Show)\n\nmkEmail :: Text -> Either Text Email\nmkEmail t\n  | T.isInfixOf (T.pack \"@\") t = Right (Email t)\n  | otherwise                 = Left (T.pack \"invalid email\")\n\ndata User = User\n  { _user_id    :: !UserId\n  , _user_role  :: !Role\n  , _user_email :: !Email\n  }\n  deriving stock (Eq, Show)\n```",
+      "prompt": "Review this module.\n\n```haskell\nmodule Domain.User where\n\nimport qualified Data.Text as T\nimport Data.Text (Text)\nimport Data.Int\n\nnewtype UserId = UserId { unUserId :: Int64 }\n  deriving newtype (Eq, Ord, Show)\n\ndata Role = Admin | Editor | Viewer\n  deriving stock (Eq, Ord, Show)\n\nnewtype Email = Email { unEmail :: Text }\n  deriving stock (Eq, Show)\n\nmkEmail :: Text -> Either Text Email\nmkEmail t\n  | T.isInfixOf (T.pack \"@\") t = Right (Email t)\n  | otherwise                 = Left (T.pack \"invalid email\")\n\ndata User = User\n  { _user_id    :: !UserId\n  , _user_role  :: !Role\n  , _user_email :: !Email\n  }\n  deriving stock (Eq, Show)\n```",
       "expected_output": "This code already follows the skill's guidance (newtype ids, sum type for Role, smart constructor for Email, strict type-prefixed fields, explicit DerivingStrategies, Text not String). A good review recognizes it is largely idiomatic and does NOT invent spurious bugs; any suggestions are minor/genuine, not fabricated problems.",
       "files": [],
       "assertions": [

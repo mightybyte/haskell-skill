@@ -25,6 +25,7 @@
       "assertions": [
         "Replaces the stringly-typed role with a sum type (e.g. data Role = Admin | Editor | Viewer)",
         "Wraps the email in a newtype with a smart constructor that validates the invariant",
+        "Prefers a simple Either String error for the smart constructor over a bespoke error ADT (typed errors only when matched on for flow control)",
         "Uses a newtype for the identifier (e.g. UserId) to prevent mixing it with other Int64 ids",
         "Recommends strict fields (!) on the record",
         "Bonus: type-prefixed field names to avoid global name clashes, and/or explicit DerivingStrategies"
