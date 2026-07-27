@@ -252,6 +252,27 @@ The `_<type>_<field>` scheme is deliberate on three counts:
   can be split mechanically (`_<type>_<field>`) to recover the owning type. That makes the scheme
   introspectable for code generation, rather than guessing where the type name ends.
 
+### Construct records with named-field syntax
+
+Prefer the named-field (record) constructor syntax over positional application — especially as a
+data type grows beyond a couple of fields. Named construction labels each argument at the call site,
+so the reader doesn't have to hold the field order in their head and an omitted or swapped argument
+is obvious.
+
+```haskell
+-- PREFER: each argument is labelled; order is irrelevant and omissions stand out
+alice :: Person
+alice = Person { _person_firstName = "Alice", _person_lastName = "Jones" }
+
+-- AVOID (especially with many fields): the reader must memorise the declaration's field order,
+-- and a swapped argument compiles fine but is silently wrong
+alice = Person "Alice" "Jones"
+```
+
+For two- or three-field records the positional form is tolerable, but reach for named construction
+as soon as the type has enough fields that you'd have to look up the declaration to read the call
+site. The same applies to `RecordWildCards`-style updates — prefer naming the fields you're setting.
+
 ### Make Illegal States Unrepresentable
 ```haskell
 -- BAD: stringly-typed
