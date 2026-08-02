@@ -273,6 +273,46 @@ For two- or three-field records the positional form is tolerable, but reach for 
 as soon as the type has enough fields that you'd have to look up the declaration to read the call
 site. The same applies to `RecordWildCards`-style updates — prefer naming the fields you're setting.
 
+### DRY up record construction with `Default`
+
+When a record is constructed in many places throughout the codebase, adding a field forces a
+sweep of every call site to supply the new value. Use the [`data-default`](https://hackage.haskell.org/package/data-default)
+package's `Default` type class to give the record a canonical default value, then construct at
+call sites by overriding only the fields that differ.
+
+```haskell
+import Data.Default (Default(..))
+
+data AppConfig = AppConfig
+  { _config_host :: Text
+  , _config_port :: Int
+  , _config_tls  :: Bool
+  , _config_retries :: Int
+  }
+
+instance Default AppConfig where
+  def = AppConfig
+    { _config_host    = "localhost"
+    , _config_port     = 8080
+    , _config_tls      = False
+    , _config_retries  = 3
+    }
+
+-- At call sites, build from def and override only what's specific here.
+-- Adding a field later only requires updating the instance, not every call site.
+prodConfig :: AppConfig
+prodConfig = def { _config_host = "prod.example.com", _config_tls = True }
+
+testConfig :: AppConfig
+testConfig = def { _config_port = 9090 }
+```
+
+Reach for a `Default` instance when the same record is constructed in several places with mostly
+shared values; don't bother for a type that's built in one place. Note that `def` is a
+**naming** convention ("the conventional default"), not a **correctness** convention — if there is
+no sensible default for a field, prefer a smart constructor or required-named-field construction
+over a `def` that lies.
+
 ### Make Illegal States Unrepresentable
 ```haskell
 -- BAD: stringly-typed
